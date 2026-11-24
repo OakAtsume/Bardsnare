@@ -26,7 +26,7 @@ Three goals drive every feature:
 
 ## Why it exists
 
-WebSpeare is a **research tool, and it's meant to be adapted.** I run it across multiple servers and report findings back to Graylog for [DC801](https://dc801.org) as ongoing, semi-private research into what's actually crawling the internet right now.
+WebSpeare is a **research tool, and it's meant to be adapted.** I run it across multiple servers and report findings back to Graylog for [DC801](https://801labs.org/) as ongoing, semi-private research into what's actually crawling the internet right now.
 
 It is deliberately small, readable, and dependency-free so that you can fork it, drop in your own bait, write your own decoys, and point it at your own logging stack without fighting a framework. If you want to study scanner behavior — or just waste an attacker's time — this is a starting point you can actually read end to end.
 
