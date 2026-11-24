@@ -1,18 +1,45 @@
-# WebSpeare
+# Bardsnare
 
-**A deceptive web honeypot, canary, and tarpit — written in pure Ruby, with no dependencies.**
+**A deceptive web honeypot, canary, and tarpit — pure Ruby, zero dependencies.**
 
-WebSpeare serves a quiet little page of Shakespeare to anyone who visits. Real humans see poetry. Crawlers and scanners see something else entirely: a maze of bait links, fake login panels, and planted "trigger strings" that look exactly like the errors and endpoints automated tools are built to hunt for. When they take the bait, WebSpeare logs everything — and, for a growing set of known exploits, *plays along* so the attacker burns their real payload on a target that was never real.
+Bardsnare serves a quiet little page of Shakespeare to anyone who visits. Real people see poetry. Crawlers and scanners see something else entirely: a maze of bait links, fake login panels, and planted "trigger strings" that look exactly like the errors and endpoints automated tools are built to hunt for. When something takes the bait, Bardsnare logs it all — and, for a growing set of known exploits, *plays along*, so the attacker burns a real payload on a target that was never real.
 
-> The name is the whole idea: **Shakespeare → WebSpeare.** Human text as camouflage.
+> The name says what it does: the **Bard**'s words as camouflage, a **snare** for everything that isn't human.
 
-It started as three things stacked together:
+---
 
-1. **Human text** — real Shakespeare, rendered as a believable page so the site reads as genuine to a person.
-2. **A crawler trap** — bait paths and (by design) invisible hyperlinks woven into that text, leading nowhere a human would ever click.
-3. **Trigger strings** — fake errors and tells that automated scanners are specifically written to look for, to lure them deeper.
+## What is it, really?
 
-Everything else — the WAF engine, the interactive CVE decoys, the tarpit, the Graylog pipeline — was built *on top* of that core.
+Think of it as a **mini-GreyNoise you can run yourself — but higher-interaction.**
+
+GreyNoise classifies internet background noise by serving a fake login page and watching who knocks. Bardsnare goes a step further: it *answers* exploit probes convincingly — handing back fake credentials and command output, then tarpitting the connection — so you capture the attacker's **follow-up** behavior, not just the first knock.
+
+It's a **research tool, built to be adapted.** It's deliberately small, readable, and dependency-free so you can fork it, drop in your own bait, write your own decoys, and point it at your own logging stack without fighting a framework. If you want to study scanner behavior — or just waste an attacker's time — this is a honeypot you can actually read end to end.
+
+> Bardsnare is a **web** honeypot — that's the whole project. (A bonus tool can also map Cowrie SSH logs; see [The attack map](#the-attack-map).)
+
+---
+
+## Try it in 30 seconds
+
+```bash
+ruby main.rb          # no dependencies — just the standard library
+```
+
+Then open <http://127.0.0.1:8081> to see the bait page, or point a scanner at it and watch `logs/` light up.
+
+Prefer Docker?
+
+```bash
+docker build -t bardsnare .
+docker run -p 8081:8081 -v "$PWD/logs:/app/logs" bardsnare
+```
+
+> Bardsnare is designed to sit **behind a reverse proxy** (e.g. nginx) that passes the real client IP via a `WebSpeare-Nginx-Real-IP` header. It terminates plain HTTP itself; let the proxy handle TLS.
+
+---
+
+## The big idea
 
 Three goals drive every feature:
 
@@ -20,15 +47,15 @@ Three goals drive every feature:
 - **Classify** — figure out *what* is knocking and *what it's after*, and tag it.
 - **Slow down** — waste the attacker's time and resources for as long as possible.
 
-> Think of it as a **mini-GreyNoise you can run yourself — but higher-interaction.** GreyNoise classifies internet noise by serving a fake login page and watching. WebSpeare goes further: it answers exploit probes convincingly, hands back fake credentials and command output, and tarpits the connection — so you capture the *follow-up* behavior, not just the first knock.
+It started as three simple layers stacked together:
 
----
+1. **Human text** — real Shakespeare, rendered as a believable page so the site reads as genuine to a person.
+2. **A crawler trap** — bait paths and (by design) invisible hyperlinks woven into that text, leading nowhere a human would ever click.
+3. **Trigger strings** — fake errors and tells that automated scanners are specifically written to look for, to lure them deeper.
 
-## Why it exists
+Everything else — the WAF engine, the interactive CVE decoys, the tarpit, the Graylog pipeline — was built *on top* of that core.
 
-WebSpeare is a **research tool, and it's meant to be adapted.** I run it across multiple servers and report findings back to Graylog for [DC801](https://dc801.org) as ongoing, semi-private research into what's actually crawling the internet right now.
-
-It is deliberately small, readable, and dependency-free so that you can fork it, drop in your own bait, write your own decoys, and point it at your own logging stack without fighting a framework. If you want to study scanner behavior — or just waste an attacker's time — this is a starting point you can actually read end to end.
+It's run across a handful of servers, reporting findings back to Graylog for [DC801](https://dc801.org) as ongoing, semi-private research into what's actually crawling the internet right now.
 
 ---
 
@@ -63,7 +90,7 @@ TCP accept ─▶ parse (hand-rolled HTTP) ─▶ firewall (priority-ordered rul
 
 ## The rule engine: two kinds of rules
 
-WebSpeare deliberately supports two paradigms so you can reach for the right tool:
+Bardsnare deliberately supports two paradigms so you can reach for the right tool.
 
 ### 1. Declarative JSON rules (`waf/legacyrules/*.json`)
 
@@ -129,7 +156,7 @@ firewall.register(myDecoy.method(:runCheck), 110)
 ## The attack map
 
 A live, self-contained GeoIP attack map lives under `attack-map/`. It tails the
-same structured JSON logs WebSpeare already writes, geolocates each source, and
+same structured JSON logs Bardsnare already writes, geolocates each source, and
 renders a WarGames-style globe of incoming probes — color-coded by severity,
 with interactive-decoy engagements called out in their own color.
 
@@ -144,7 +171,7 @@ single `<canvas>`, so it runs fine on an air-gapped network.
   so a freshly opened map immediately shows recent history (`/api/recent`) and
   live aggregate stats (`/api/stats`). It degrades to polling if SSE is
   unavailable.
-- **Classification:** every log shape WebSpeare has ever emitted is handled —
+- **Classification:** every log shape Bardsnare has ever emitted is handled —
   `wafRule` as a plain string *or* a full rule object, timestamps as epoch /
   ISO-8601 / `"YYYY-MM-DD HH:MM:SS ±ZZZZ"`. Each hit is tagged with a severity,
   any referenced CVE, whether an interactive **decoy** was engaged, and whether
@@ -163,7 +190,7 @@ ruby main.rb                   # serves the map on 127.0.0.1:8082
 ```
 
 You'll need MaxMind's free `GeoLite2-City.mmdb` in the `attack-map/` directory.
-Point a browser at `http://127.0.0.1:8082`. Append `?shot` for a static,
+Point a browser at <http://127.0.0.1:8082>. Append `?shot` for a static,
 no-stream snapshot (handy for screenshots and headless capture).
 
 Config (`attack-map/config.json`) covers the bind host/port, the log directory
@@ -171,26 +198,10 @@ it tails, the honeypot's own map coordinates (`honeypot`), `labMode`, the
 `ringBuffer` size, how many historical events to `backfill` on start, and the
 `statsIntervalSeconds` heartbeat.
 
----
-
-## Quick start
-
-### Docker
-
-```bash
-docker build -t webspeare .
-docker run -p 8081:8081 -v "$PWD/logs:/app/logs" webspeare
-```
-
-### Bare Ruby (no dependencies)
-
-```bash
-ruby main.rb
-```
-
-Then point a browser at `http://127.0.0.1:8081` to see the bait page, or throw a scanner at it and watch the logs.
-
-> WebSpeare is designed to sit **behind a reverse proxy** (e.g. nginx) that passes the real client IP via a `WebSpeare-Nginx-Real-IP` header. It terminates plain HTTP itself; let the proxy handle TLS.
+> **Bonus:** a sibling renderer under `cowrie-attack-map/` ingests
+> [Cowrie](https://github.com/cowrie/cowrie) SSH honeypot JSON instead, if you'd
+> like to visualize an existing SSH honeypot the same way. It's an extra — not
+> part of the core Bardsnare web honeypot.
 
 ---
 
