@@ -223,7 +223,7 @@ This is a research tool, run by one person across a handful of servers. Things t
 
 ## License & contact
 
-Research project maintained by Oak Atsume for [DC801](https://dc801.org).
+Research project maintained by Oak Atsume for [DC801](https://801labs.org/).
 
 - Contact: `oak@801labs.org`
 - Discord: `@OakAtsume`
