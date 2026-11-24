@@ -14,7 +14,7 @@
     "category": "exploit:php-core:CVE-2026-109618",
     "level": "critical",
     "section": ["body"],
-    "regex": "(?i)((^|&)[^&=]{1000,}(&|=|$)|(name|filename)=\"[^\"]{1000,})",
+    "regex": "(?i)((\\A|&)[^&=]{1000,}(=|&|\\z)|(name|filename)=\"[^\"]{1000,})",
     "action": "log"
   }
 ]

@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+# procd service for wg-watchdog. Install as /etc/init.d/wg-watchdog (chmod +x),
+# then:  /etc/init.d/wg-watchdog enable && /etc/init.d/wg-watchdog start
+# procd keeps the watchdog running and respawns it if it ever dies.
+
+START=99
+STOP=10
+USE_PROCD=1
+PROG=/usr/bin/wg-watchdog.sh
+
+start_service() {
+    procd_open_instance
+    procd_set_param command "$PROG" --daemon
+    # respawn: error-window(s), restart-delay(s), max-retries (0 = unlimited)
+    procd_set_param respawn 3600 5 0
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
